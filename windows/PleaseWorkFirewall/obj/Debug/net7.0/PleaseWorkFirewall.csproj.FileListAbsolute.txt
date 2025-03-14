@@ -1,0 +1,17 @@
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\bin\Debug\net7.0\PleaseWorkFirewall.exe
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\bin\Debug\net7.0\PleaseWorkFirewall.deps.json
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\bin\Debug\net7.0\PleaseWorkFirewall.runtimeconfig.json
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\bin\Debug\net7.0\PleaseWorkFirewall.dll
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\bin\Debug\net7.0\PleaseWorkFirewall.pdb
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\Interop.NETCONLib.dll
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\Interop.NetFwTypeLib.dll
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.csproj.ResolveComReference.cache
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.AssemblyInfoInputs.cache
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.AssemblyInfo.cs
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.csproj.CoreCompileInputs.cache
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.dll
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\refint\PleaseWorkFirewall.dll
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.pdb
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\PleaseWorkFirewall.genruntimeconfig.cache
+C:\Users\DSU Student\source\repos\PleaseWorkFirewall\PleaseWorkFirewall\obj\Debug\net7.0\ref\PleaseWorkFirewall.dll
