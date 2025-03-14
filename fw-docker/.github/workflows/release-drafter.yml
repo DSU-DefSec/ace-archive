@@ -1,7 +1,9 @@
 name: Release Drafter
 
 on:
-  push:
+  # push:
+  #   branches:
+  #     - main
   # branches to consider in the event; optional, defaults to all
   # pull_request event is required only for autolabeler
   pull_request:
@@ -12,7 +14,7 @@ on:
   #   types: [opened, reopened, synchronize]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   update_release_draft:
@@ -24,16 +26,27 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 2
+      - name: Get version
+        id: get_version
+        run: echo "version=$(cat VERSION)" >> $GITHUB_ENV
+      - name: Sanity check
+        run: |
+          echo "Version: ${{ env.version }}"
       # (Optional) GitHub Enterprise requires GHE_HOST variable set
       # - name: Set GHE_HOST
       #  run: |
       #    echo "GHE_HOST=${GITHUB_SERVER_URL##https:\/\/}" >> $GITHUB_ENV
 
       # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: release-drafter/release-drafter@v6
+      - uses: release-drafter/release-drafter@v6.1.0
         # (Optional) specify config name to use, relative to .github/. Default: release-drafter.yml
         # with:
-        #   config-name: my-config.yml
-        #   disable-autolabeler: true
+        # #   config-name: my-config.yml
+        # # disable-autolabeler: false
+        # # current-version: ${{ steps.get_version.outputs.version }}
+          # tag: ${{ env.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,44 +1,45 @@
-name-template: '$NEXT_PATCH_VERSION'
-tag-template: '$NEXT_PATCH_VERSION'
+name-template: ${{ env.version }}
+tag-template: ${{ env.version }}
 categories:
-  - title: '🚀 Features'
+  - title: "🚀 Features"
     labels:
-      - 'feature'
-      - 'enhancement'
-  - title: '🐛 Bug Fixes'
+      - "feature"
+      - "enhancement"
+  - title: "🐛 Bug Fixes"
     labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'
-  - title: '🔒 Security'
+      - "fix"
+      - "bugfix"
+      - "bug"
+  - title: "🔒 Security"
     labels:
-      - 'security'
-  - title: 'Submodule Updates'
+      - "security"
+  - title: "Submodule Updates"
     labels:
-      - 'submodules'
-      - 'gitsubmodule'
-  - title: '🧰 Maintenance'
+      - "submodules"
+      - "gitsubmodule"
+  - title: "🧰 Maintenance"
     labels:
-      - 'chore'
-      - 'dependabot'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+      - "chore"
+      - "dependabot"
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
-prerelease-identifier: 'alpha' # will create a prerelease with version number x.x.x-alpha.x
+prerelease-identifier: "alpha" # will create a prerelease with version number x.x.x-alpha.x
+include-pre-releases: true
 version-resolver:
   major:
     labels:
-      - 'major'
+      - "major"
   minor:
     labels:
-      - 'minor'
+      - "minor"
   patch:
     labels:
-      - 'patch'
+      - "patch"
   default: patch
 template: |
   ## Download
   ```bash
-  docker pull ghcr.io/dsiemienas03/ccdc-ansible:$NEXT_PATCH_VERSION
+  docker pull ghcr.io/dsiemienas03/ccdc-ansible:$RESOLVED_VERSION
   ```
 
   ## Changes

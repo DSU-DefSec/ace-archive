@@ -1,0 +1,254 @@
+---
+- name: Ya Only Live Once
+  hosts:
+    - esxi
+    - palo
+  # ignore_errors: true
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+    - dsu.ccdc.palo
+  vars:
+    provider:
+      ip_address: "{{ inventory_hostname }}"
+      api_key: "{{ api_key }}"
+
+  tasks:
+    - name: Import vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    - name: ESXI stuff
+      when: inventory_hostname in groups['esxi']
+      block:
+        - name: Create vSwitch
+          when: esxi_vswitches is defined
+          ansible.builtin.include_role:
+            name: dsu.ccdc.esxi
+            tasks_from: vswitch
+          loop: "{{ esxi_vswitches }}"
+          loop_control:
+            loop_var: new_net
+
+        - name: Palo NIC
+          when: fw_name is defined
+          community.vmware.vmware_guest:
+            hostname: "{{ inventory_hostname }}"
+            username: "{{ esxi_user }}"
+            password: "{{ esxi_password }}"
+            validate_certs: false
+            name: "{{ fw_name }}"
+            # name: test
+            networks:
+              - name: "{{ default_net | default('VM Network') }}"
+              - name: "{{ default_net | default('VM Network') }}"
+              - name: "net1"
+              - name: "net2"
+              - name: "net3"
+              - name: "net4"
+              - name: "net5"
+              - name: "net6"
+              - name: "net7"
+              - name: "mgt"
+          register: new_nic
+          delegate_to: localhost
+
+    - name: Palo stuff
+      when: inventory_hostname in groups['palo']
+      block:
+        - name: Include role
+          ansible.builtin.include_role:
+            name: dsu.ccdc.palo
+            vars_from: main.yml
+
+        - name: Load vars
+          ansible.builtin.include_vars:
+            dir: /home/ansible/vars/
+
+        - name: Print configs
+          ansible.builtin.debug:
+            msg:
+              PANOS Version: "{{ palo_panos_version | default(omit) }}"
+              FW Net: "{{ lan_net | default(omit) }}"
+              Wazuh: "{{ wazuh | default(omit) }}"
+              Wazuh Port: "{{ wasuh_port | default(omit) }}"
+
+        - name: Print Important IPs
+          ansible.builtin.debug:
+            msg:
+              Phone: "{{ white_phone | default(omit) }}"
+              CCS: "{{ white_ccs | default(omit) }}"
+              Proxy: "{{ white_proxy | default(omit) }}"
+              Mask: "{{ white_mask | default(omit) }}"
+              NTP: "{{ white_ntp | default(omit) }}"
+              DNS: "{{ white_dns | default(omit) }}"
+              Remote Net: "{{ remote_net | default(omit) }}"
+
+        - name: Print options
+          ansible.builtin.debug:
+            msg:
+              Initial Groups: "{{ palo_config_initial_groups }}"
+              Initial Interface: "{{ palo_config_initial_interface }}"
+              Logging: "{{ palo_config_logging }}"
+              Initial Rules: "{{ palo_config_initial_rules }}"
+              Initial Zones: "{{ palo_config_initial_zones }}"
+              Update Other: "{{ palo_config_update_other | default(omit) }}"
+              Update OS: "{{ palo_update_os }}"
+
+        - name: Confirm config
+          ansible.builtin.pause:
+
+        - name: Set dns and panorama
+          when: local_dns is defined
+          paloaltonetworks.panos.panos_mgtconfig:
+            provider: "{{ provider }}"
+            dns_server_primary: "{{ local_dns }}"
+            dns_server_secondary: "{{ white_dns }}"
+            ntp_server_primary: "{{ white_ntp }}"
+
+        # Updates
+        - name: Palo OS Update
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: os_update
+          when: palo_update_os
+
+        - name: Update all other software to latest version
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: all_updates
+          when: palo_config_update_other
+
+        - name: Set updates complete
+          ansible.builtin.set_fact:
+            palo_config_update_other: false
+            cacheable: true
+          when: palo_config_update_other
+
+        # Zones
+        - name: Add Zones
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: zones
+          when: palo_config_initial_zones
+
+        # Interfaces
+        - name: Add interfaces
+          when: palo_config_initial_interface
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: interfaces
+
+        # Objects
+        - name: Add addresses
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: address
+          when: palo_config_initial_groups
+
+        - name: Add profiles
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: profiles
+          when: palo_config_initial_groups
+
+        - name: Add services
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: service_group
+          when: palo_config_initial_groups
+
+        - name: Set initial groups complete
+          ansible.builtin.set_fact:
+            palo_config_initial_groups: false
+            cacheable: true
+          when: palo_config_initial_groups
+
+        # Logging
+        - name: Add logging
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: logging
+          when: palo_config_logging
+
+        - name: Set logging complete
+          ansible.builtin.set_fact:
+            palo_config_logging: false
+            cacheable: true
+          when: palo_config_logging
+
+        # Firewall rules
+        - name: Add CCDC firewall Rules
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: rules
+
+        - name: Commit rule changes
+          ansible.builtin.import_role:
+            name: dsu.ccdc.palo
+            tasks_from: commit
+
+    - name: Finish ESXI stuff
+      when: inventory_hostname in groups['esxi']
+      block:
+        - name: Set new net
+          ansible.builtin.set_fact:
+            new_net: "net1"
+
+        - name: Move VMs to new vSwitch
+          ansible.builtin.import_role:
+            name: dsu.ccdc.esxi
+            tasks_from: update_nic
+
+        - name: Snapshot with new nics
+          ansible.builtin.import_role:
+            name: dsu.ccdc.esxi
+            tasks_from: snapshot
+
+        - name: Get all vm info
+          delegate_to: localhost
+          community.vmware.vmware_vm_info:
+            hostname: "{{ inventory_hostname }}"
+            username: "{{ esxi_user }}"
+            password: "{{ esxi_password }}"
+            validate_certs: false
+          register: vm_info
+
+        - name: Print VM info
+          ansible.builtin.debug:
+            var: vm_info
+
+        - name: Export VM info to file
+          ansible.builtin.template:
+            src: /home/ansible/playbooks/esxi.j2
+            dest: /home/ansible/vars/{{ inventory_hostname }}.yml
+            owner: ansible
+            group: ansible
+            mode: "0644"
+
+  handlers:
+    - name: Wait for System Information
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        device_group: "{{ device_group if device_group is defined else omit }}"
+        cmd: show system info
+      register: system_info
+      until: system_info is not failed
+      retries: 100
+      delay: 10
+      listen: reboot
+
+    - name: Update System Info
+      ansible.builtin.set_fact:
+        system_info_json: "{{ system_info.stdout | from_json }}"
+      listen: reboot
+
+    - name: Update Software Version
+      ansible.builtin.set_fact:
+        sw_version: "{{ system_info_json.response.result.system['sw-version'] }}"
+      listen: reboot
+
+    - name: Display Current Software version
+      ansible.builtin.debug:
+        msg: "Current software version is: {{ sw_version }}"
+      listen: reboot

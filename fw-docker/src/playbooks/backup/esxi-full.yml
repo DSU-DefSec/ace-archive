@@ -1,0 +1,83 @@
+---
+- name: ESXI full configuration
+  hosts: esxi
+  # ignore_errors: true
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+  # vars:
+  # esxi_user: root
+  # strategy: free
+  connection: local
+
+  tasks:
+    - name: Import vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    - name: Create vSwitch
+      when: esxi_vswitches is defined
+      ansible.builtin.include_role:
+        name: dsu.ccdc.esxi
+        tasks_from: vswitch
+      loop: "{{ esxi_vswitches }}"
+      loop_control:
+        loop_var: new_net
+
+    - name: Palo NIC
+      when: fw_name is defined
+      community.vmware.vmware_guest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ fw_name }}"
+        # name: test
+        networks:
+          - name: "{{ default_net | default('VM Network') }}"
+          - name: "{{ default_net | default('VM Network') }}"
+          - name: "net1"
+          - name: "net2"
+          - name: "net3"
+          - name: "net4"
+          - name: "net5"
+          - name: "net6"
+          - name: "net7"
+          - name: "mgt"
+      register: new_nic
+      delegate_to: localhost
+
+    - name: Set new net
+      ansible.builtin.set_fact:
+        new_net: "net1"
+
+    - name: Move VMs to new vSwitch
+      ansible.builtin.import_role:
+        name: dsu.ccdc.esxi
+        tasks_from: update_nic
+
+    - name: Snapshot with new nics
+      ansible.builtin.import_role:
+        name: dsu.ccdc.esxi
+        tasks_from: snapshot
+
+    - name: Get all vm info
+      delegate_to: localhost
+      community.vmware.vmware_vm_info:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+      register: vm_info
+
+    - name: Print VM info
+      ansible.builtin.debug:
+        var: vm_info
+
+    - name: Export VM info to file
+      ansible.builtin.template:
+        src: /home/ansible/playbooks/esxi.j2
+        dest: /home/ansible/vars/{{ inventory_hostname }}.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"

@@ -1,0 +1,46 @@
+---
+- name: ESXI snapshot
+  hosts: esxi
+  # ignore_errors: true
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+  vars:
+    esxi_user: root
+  # strategy: free
+
+  tasks:
+    - name: Import vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    - name: Create vSwitch
+      when: esxi_vswitches is defined
+      ansible.builtin.include_role:
+        name: dsu.ccdc.esxi
+        tasks_from: vswitch
+      loop: "{{ esxi_vswitches }}"
+      loop_control:
+        loop_var: new_net
+
+    - name: Palo NIC
+      community.vmware.vmware_guest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "Palo"
+        # name: test
+        networks:
+          - name: "{{ default_net | default('VM Network') }}"
+          - name: "{{ default_net | default('VM Network') }}"
+          - name: "net1"
+          - name: "net2"
+          - name: "net3"
+          - name: "net4"
+          - name: "net5"
+          - name: "net6"
+          - name: "net7"
+          - name: "mgt"
+      register: new_nic
+      delegate_to: localhost
